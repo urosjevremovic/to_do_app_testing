@@ -21,9 +21,9 @@ class TaskOwnedByUserMixin(object):
     If not, return a 404 instead of a 403 to obfuscate the existence
     of that task.
     """
-    def post(self, request, task_id = None, *args, **kwargs):
+    def post(self, request, task_id=None, *args, **kwargs):
         if task_id:
             # Validate that user owns task or 404
-            get_object_or_404(Task, pk = task_id, owner = request.user)
+            get_object_or_404(Task, pk=task_id, owner=request.user)
 
         return super(TaskOwnedByUserMixin, self).post(request, *args, **kwargs)

@@ -1,8 +1,10 @@
+import time
 from unittest import TestCase
 
 from tasks.models import Task
 
 from django.utils import timezone
+from django.test import TransactionTestCase
 
 
 class ClassModelTestCase(TestCase):
@@ -60,3 +62,37 @@ class ClassModelTestCase(TestCase):
         target.mark_incomplete(commit=False)
 
         self.assertFalse(target.is_complete)
+
+
+class TaskModelTransactionTestCase(TransactionTestCase):
+    fixtures = ['tasks/fixtures/unit-tests.json']
+
+    def test_fixtures_load(self):
+        self.assertTrue(Task.objects.count() > 0)
+
+    def test_mark_incomplete_persists(self):
+        Task.objects.update(
+            complete_time=timezone.now() + timezone.timedelta(days=1)
+        )
+
+        target = Task.objects.first()
+        target.mark_incomplete()
+        self.assertFalse(Task.objects.get(pk=target.pk).is_complete)
+
+    def test_mark_complete_persists(self):
+        Task.objects.update(
+            complete_time=None
+        )
+
+        target = Task.objects.first()
+        target.mark_complete()
+        self.assertTrue(Task.objects.get(pk=target.pk).is_complete)
+
+    def test_time_impacts_due_soon(self):
+        target = Task.objects.first()
+        target.due_date = timezone.now() + timezone.timedelta(days=2, seconds=0.01)
+        target.save()
+
+        self.assertFalse(target.due_soon)
+        time.sleep(0.1)
+        self.assertTrue(target.due_soon)

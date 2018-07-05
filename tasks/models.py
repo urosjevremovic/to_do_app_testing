@@ -46,19 +46,22 @@ class Task(models.Model):
         Checks if a task is due soon.
         :return: True if task is due within two days. Otherwise, False.
         """
+        min_due = timezone.now().__add__(timezone.timedelta(days=2))
         return bool(
-            self.complete_time < (timezone.now() - timezone.timedelta(days = 2)))
+            self.due_date and self.due_date < min_due)
 
-    def mark_complete(self):
+    def mark_complete(self, commit=True):
         """
         Marks a task as complete by storing the current UTC time in complete_time
         """
         self.complete_time = timezone.now()
-        self.save()
+        if commit:
+            self.save()
 
-    def mark_incomplete(self):
+    def mark_incomplete(self, commit=True):
         """
         Marks a task as incomplete by storing None in complete_time
         """
         self.complete_time = None
-        self.save()
+        if commit:
+            self.save()

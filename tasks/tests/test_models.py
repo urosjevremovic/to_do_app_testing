@@ -1,6 +1,9 @@
 import time
 from unittest import TestCase
 
+from autofixture import AutoFixture
+from django.contrib.auth.models import User
+
 from tasks.models import Task
 
 from django.utils import timezone
@@ -65,7 +68,12 @@ class ClassModelTestCase(TestCase):
 
 
 class TaskModelTransactionTestCase(TransactionTestCase):
-    fixtures = ['tasks/fixtures/unit-tests.json']
+    # fixtures = ['tasks/fixtures/unit-tests.json']
+    def setUp(self):
+        self.user = AutoFixture(User).create(1)[0]
+        AutoFixture(Task, field_values={
+            'owner': self.user
+        }).create(10)
 
     def test_fixtures_load(self):
         self.assertTrue(Task.objects.count() > 0)
